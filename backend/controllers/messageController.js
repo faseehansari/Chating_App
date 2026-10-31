@@ -148,3 +148,117 @@ export const getMessages = async (req, res) => {
     });
   }
 };
+
+
+// Mark Messages as Delivered
+export const markMessagesDelivered = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const userId = req.user.id;
+
+    if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid conversation ID",
+      });
+    }
+
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      participants: userId,
+    }).select("_id");
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: "Conversation not found or access denied",
+      });
+    }
+
+    const now = new Date();
+
+    const result = await Message.updateMany(
+      {
+        conversation: conversationId,
+        receiver: userId,
+        status: "sent",
+      },
+      {
+        $set: {
+          status: "delivered",
+          deliveredAt: now,
+        },
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Messages marked as delivered",
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("Mark Delivered Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update delivery status",
+    });
+  }
+};
+
+// Mark Messages as Read
+export const markMessagesRead = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const userId = req.user.id;
+
+    if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid conversation ID",
+      });
+    }
+
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      participants: userId,
+    }).select("_id");
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: "Conversation not found or access denied",
+      });
+    }
+
+    const now = new Date();
+
+    const result = await Message.updateMany(
+      {
+        conversation: conversationId,
+        receiver: userId,
+        status: { $ne: "read" },
+      },
+      {
+        $set: {
+          status: "read",
+          deliveredAt: now,
+          readAt: now,
+        },
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Messages marked as read",
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("Mark Read Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update read status",
+    });
+  }
+};
