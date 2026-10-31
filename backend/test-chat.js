@@ -23,10 +23,14 @@ rl.setPrompt("> ");
 
 socket.on("connect", () => {
   console.log("\nSocket connected:", socket.id);
+
   console.log("\nCommands:");
   console.log("Type a message to send");
-  console.log("/read - Mark messages as read");
-  console.log("/exit - Disconnect\n");
+  console.log("/read  - Mark messages as read");
+  console.log("/typing - Start typing");
+  console.log("/stop  - Stop typing");
+  console.log("/exit  - Disconnect\n");
+
   rl.prompt();
 });
 
@@ -57,6 +61,27 @@ socket.on("message_status_update", (data) => {
   rl.prompt();
 });
 
+// Receive typing status
+socket.on("user_typing", (data) => {
+  if (data.conversationId !== conversationId) return;
+
+  if (data.isTyping) {
+    console.log("\nOTHER USER IS TYPING...");
+  } else {
+    console.log("\nOTHER USER STOPPED TYPING");
+  }
+
+  rl.prompt();
+});
+
+const emitWithResponse = (event, payload, label) => {
+  socket.emit(event, payload, (response) => {
+    console.log(`\n${label}:`);
+    console.log(response);
+    rl.prompt();
+  });
+};
+
 rl.on("line", (input) => {
   const content = input.trim();
 
@@ -71,18 +96,29 @@ rl.on("line", (input) => {
   }
 
   if (content === "/read") {
-    console.log("\nMarking messages as read...");
-
-    socket.emit(
+    emitWithResponse(
       "mark_messages_read",
       { conversationId },
-      (response) => {
-        console.log("\nREAD RESPONSE:");
-        console.log(response);
-        rl.prompt();
-      }
+      "READ RESPONSE"
     );
+    return;
+  }
 
+  if (content === "/typing") {
+    emitWithResponse(
+      "typing_start",
+      { conversationId },
+      "TYPING RESPONSE"
+    );
+    return;
+  }
+
+  if (content === "/stop") {
+    emitWithResponse(
+      "typing_stop",
+      { conversationId },
+      "STOP TYPING RESPONSE"
+    );
     return;
   }
 

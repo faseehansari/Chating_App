@@ -128,16 +128,13 @@ export const initializeSocket = (server) => {
           .populate("sender", "username profilePicture")
           .populate("receiver", "username profilePicture");
 
-        // Send message to receiver
         io.to(receiverId.toString()).emit(
           "new_message",
           populatedMessage
         );
 
-        // Confirm message to sender
         io.to(userId).emit("message_sent", populatedMessage);
 
-        // Notify sender about delivery
         if (receiverIsOnline) {
           io.to(userId).emit("message_status_update", {
             messageId: message._id,
@@ -174,7 +171,6 @@ export const initializeSocket = (server) => {
           });
         }
 
-        // Verify conversation access
         const conversation = await Conversation.findOne({
           _id: conversationId,
           participants: userId,
@@ -189,7 +185,6 @@ export const initializeSocket = (server) => {
 
         const now = new Date();
 
-        // Find unread messages received by current user
         const unreadMessages = await Message.find({
           conversation: conversationId,
           receiver: userId,
@@ -206,7 +201,6 @@ export const initializeSocket = (server) => {
           });
         }
 
-        // Set deliveredAt for any message not yet delivered
         await Message.updateMany(
           {
             _id: { $in: unreadMessages.map((msg) => msg._id) },
@@ -219,7 +213,6 @@ export const initializeSocket = (server) => {
           }
         );
 
-        // Update messages as read
         await Message.updateMany(
           {
             _id: { $in: unreadMessages.map((msg) => msg._id) },
@@ -233,7 +226,6 @@ export const initializeSocket = (server) => {
           }
         );
 
-        // Notify sender about read status
         for (const msg of unreadMessages) {
           io.to(msg.sender.toString()).emit(
             "message_status_update",
@@ -259,6 +251,116 @@ export const initializeSocket = (server) => {
         callback?.({
           success: false,
           message: "Failed to mark messages as read",
+        });
+      }
+    });
+
+    // Typing Start
+    socket.on("typing_start", async (data, callback) => {
+      try {
+        const { conversationId } = data || {};
+
+        if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+          return callback?.({
+            success: false,
+            message: "Invalid conversation ID",
+          });
+        }
+
+        const conversation = await Conversation.findOne({
+          _id: conversationId,
+          participants: userId,
+        }).select("participants");
+
+        if (!conversation) {
+          return callback?.({
+            success: false,
+            message: "Conversation not found or access denied",
+          });
+        }
+
+        const receiverId = conversation.participants.find(
+          (id) => id.toString() !== userId
+        );
+
+        if (!receiverId) {
+          return callback?.({
+            success: false,
+            message: "Receiver not found",
+          });
+        }
+
+        io.to(receiverId.toString()).emit("user_typing", {
+          conversationId,
+          userId,
+          isTyping: true,
+        });
+
+        callback?.({
+          success: true,
+          message: "Typing started",
+        });
+      } catch (error) {
+        console.error("Typing Start Error:", error);
+
+        callback?.({
+          success: false,
+          message: "Failed to start typing",
+        });
+      }
+    });
+
+    // Typing Stop
+    socket.on("typing_stop", async (data, callback) => {
+      try {
+        const { conversationId } = data || {};
+
+        if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+          return callback?.({
+            success: false,
+            message: "Invalid conversation ID",
+          });
+        }
+
+        const conversation = await Conversation.findOne({
+          _id: conversationId,
+          participants: userId,
+        }).select("participants");
+
+        if (!conversation) {
+          return callback?.({
+            success: false,
+            message: "Conversation not found or access denied",
+          });
+        }
+
+        const receiverId = conversation.participants.find(
+          (id) => id.toString() !== userId
+        );
+
+        if (!receiverId) {
+          return callback?.({
+            success: false,
+            message: "Receiver not found",
+          });
+        }
+
+        io.to(receiverId.toString()).emit("user_typing", {
+          conversationId,
+          userId,
+          isTyping: false,
+        });
+
+        callback?.({
+          success: true,
+          message: "Typing stopped",
+        });
+      } catch (error) {
+        console.error("Typing Stop Error:", error);
+
+        callback?.({
+          success: false,
+          message: "Failed to stop typing",
         });
       }
     });
