@@ -6,6 +6,8 @@ import http from "http";
 
 import connectDB from "./config/DB.js";
 import authRoutes from "./routes/authRoutes.js";
+import authMiddleware from "./middelwear/authMiddleware.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 
@@ -35,8 +37,16 @@ app.get("/", (req, res) => {
 });
 
 //Routes
+app.get("/api/protected", authMiddleware, (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "You are authenticated!",
+    user: req.user,
+  });
+});
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 // Start Server
 const PORT = process.env.PORT;
 
