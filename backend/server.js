@@ -10,6 +10,7 @@ import authMiddleware from "./middelwear/authMiddleware.js";
 import userRoutes from "./routes/userRoutes.js";
 import conversationRoutes from "./routes/conversationRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import { initializeSocket } from "./socket/socket.js";
 
 dotenv.config();
 
@@ -18,7 +19,6 @@ const app = express();
 // HTTP Server
 const server = http.createServer(app);
 
-// Socket.IO will be initialized here later
 
 // Middleware
 app.use(
@@ -58,8 +58,10 @@ const startServer = async () => {
   try {
     await connectDB();
 
+    initializeSocket(server);
+
     server.listen(PORT, () => {
-      console.log(`Server running on  http://localhost:${PORT}`);
+      console.log(`Server running on http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error("Server startup failed:", error.message);
