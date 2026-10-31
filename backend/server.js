@@ -8,6 +8,7 @@ import connectDB from "./config/DB.js";
 import authRoutes from "./routes/authRoutes.js";
 import authMiddleware from "./middelwear/authMiddleware.js";
 import userRoutes from "./routes/userRoutes.js";
+import conversationRoutes from "./routes/conversationRoutes.js";
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.get("/api/protected", authMiddleware, (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/conversations", conversationRoutes);
 // Start Server
 const PORT = process.env.PORT;
 
