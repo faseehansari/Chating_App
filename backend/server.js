@@ -5,6 +5,7 @@ import cors from "cors";
 import http from "http";
 
 import connectDB from "./config/DB.js";
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 
@@ -33,8 +34,11 @@ app.get("/", (req, res) => {
   });
 });
 
+//Routes
+
+app.use("/api/auth", authRoutes);
 // Start Server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 const startServer = async () => {
   try {
