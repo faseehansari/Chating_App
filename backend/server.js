@@ -17,16 +17,27 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-const CLIENT_URL = process.env.CLIENT_URL;
+// Allowed Frontend URLs
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CLIENT_URL,
+].filter(Boolean);
 
 // CORS Configuration
 const corsOptions = {
-  origin: CLIENT_URL,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    }
+  },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
 
+// Apply CORS before routes
 app.use(cors(corsOptions));
 
 // Body Parser
@@ -65,8 +76,8 @@ const startServer = async () => {
     initializeSocket(server);
 
     server.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-      console.log(`Allowed frontend origin: ${CLIENT_URL}`);
+      console.log(`Server running on port ${PORT}`);
+      console.log("Allowed frontend origins:", allowedOrigins);
     });
   } catch (error) {
     console.error("Server startup failed:", error.message);
