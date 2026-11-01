@@ -45,6 +45,9 @@ export const initializeSocket = (server) => {
   io.on("connection", async (socket) => {
     const userId = socket.userId;
 
+    // Check whether this is the user's first active socket.
+    const isFirstConnection = !onlineUsers.has(userId);
+
     if (!onlineUsers.has(userId)) {
       onlineUsers.set(userId, new Set());
     }
@@ -52,11 +55,26 @@ export const initializeSocket = (server) => {
     onlineUsers.get(userId).add(socket.id);
     socket.join(userId);
 
-    await User.findByIdAndUpdate(userId, { isOnline: true });
+    try {
+      await User.findByIdAndUpdate(userId, {
+        isOnline: true,
+      });
 
-    console.log(`User connected: ${userId}`);
+      console.log(`User connected: ${userId}`);
 
-    // Send Message
+      // Broadcast only on the first connection.
+      if (isFirstConnection) {
+        io.emit("user_online", {
+          userId,
+          isOnline: true,
+        });
+      }
+    } catch (error) {
+      console.error("User Online Update Error:", error);
+    }
+
+    // ================= SEND MESSAGE =================
+
     socket.on("send_message", async (data, callback) => {
       try {
         const { conversationId, content } = data || {};
@@ -159,7 +177,8 @@ export const initializeSocket = (server) => {
       }
     });
 
-    // Mark Messages as Read
+    // ================= MARK MESSAGES AS READ =================
+
     socket.on("mark_messages_read", async (data, callback) => {
       try {
         const { conversationId } = data || {};
@@ -255,7 +274,8 @@ export const initializeSocket = (server) => {
       }
     });
 
-    // Typing Start
+    // ================= TYPING START =================
+
     socket.on("typing_start", async (data, callback) => {
       try {
         const { conversationId } = data || {};
@@ -310,7 +330,8 @@ export const initializeSocket = (server) => {
       }
     });
 
-    // Typing Stop
+    // ================= TYPING STOP =================
+
     socket.on("typing_stop", async (data, callback) => {
       try {
         const { conversationId } = data || {};
@@ -365,22 +386,37 @@ export const initializeSocket = (server) => {
       }
     });
 
-    // Disconnect
+    // ================= DISCONNECT =================
+
     socket.on("disconnect", async () => {
       const userSockets = onlineUsers.get(userId);
 
       if (userSockets) {
         userSockets.delete(socket.id);
 
+        // Only mark offline when the last socket disconnects.
         if (userSockets.size === 0) {
           onlineUsers.delete(userId);
 
-          await User.findByIdAndUpdate(userId, {
-            isOnline: false,
-            lastSeen: new Date(),
-          });
+          const lastSeen = new Date();
 
-          console.log(`User disconnected: ${userId}`);
+          try {
+            await User.findByIdAndUpdate(userId, {
+              isOnline: false,
+              lastSeen,
+            });
+
+            console.log(`User disconnected: ${userId}`);
+
+            // Broadcast offline status to connected clients.
+            io.emit("user_offline", {
+              userId,
+              isOnline: false,
+              lastSeen,
+            });
+          } catch (error) {
+            console.error("User Offline Update Error:", error);
+          }
         }
       }
     });

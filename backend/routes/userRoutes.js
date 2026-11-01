@@ -7,6 +7,7 @@ import {
   getAllUsers,
   searchUsers,
   getUserProfile,
+  updateMyProfile,
 } from "../controllers/userControllers.js";
 
 const router = express.Router();
@@ -19,6 +20,9 @@ router.get("/", getAllUsers);
 
 // Search users
 router.get("/search", searchUsers);
+
+// Update logged-in user's profile
+router.put("/profile", updateMyProfile);
 
 // Get single user profile
 router.get("/:id", getUserProfile);

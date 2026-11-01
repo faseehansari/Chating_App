@@ -15,19 +15,21 @@ import { initializeSocket } from "./socket/socket.js";
 dotenv.config();
 
 const app = express();
-
-// HTTP Server
 const server = http.createServer(app);
 
+const CLIENT_URL = process.env.CLIENT_URL;
 
-// Middleware
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true,
-  })
-);
+// CORS Configuration
+const corsOptions = {
+  origin: CLIENT_URL,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
 
+app.use(cors(corsOptions));
+
+// Body Parser
 app.use(express.json());
 
 // Test Route
@@ -38,7 +40,7 @@ app.get("/", (req, res) => {
   });
 });
 
-//Routes
+// Protected Test Route
 app.get("/api/protected", authMiddleware, (req, res) => {
   res.status(200).json({
     success: true,
@@ -47,12 +49,14 @@ app.get("/api/protected", authMiddleware, (req, res) => {
   });
 });
 
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/messages", messageRoutes);
+
 // Start Server
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
@@ -62,6 +66,7 @@ const startServer = async () => {
 
     server.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`Allowed frontend origin: ${CLIENT_URL}`);
     });
   } catch (error) {
     console.error("Server startup failed:", error.message);

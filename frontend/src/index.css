@@ -1,1 +1,163 @@
 @import "tailwindcss";
+
+
+
+/* ================================
+   LIGHT THEME (DEFAULT)
+================================ */
+
+:root {
+  color-scheme: light;
+
+  /* Primary */
+  --primary: #7895b2;
+  --primary-hover: #6684a2;
+  --primary-soft: #e8eff5;
+
+  /* Secondary */
+  --secondary: #a8b8c8;
+  --secondary-soft: #edf1f5;
+
+  /* Accent */
+  --accent: #a5bfa8;
+  --accent-soft: #e7f0e8;
+
+  /* Background */
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #eef2f6;
+
+  /* Surface */
+  --surface: #ffffff;
+  --surface-hover: #f4f6f8;
+
+  /* Text */
+  --text-primary: #293544;
+  --text-secondary: #647386;
+  --text-muted: #96a1ad;
+
+  /* Borders */
+  --border: #e4e9ef;
+  --border-focus: #7895b2;
+
+  /* Buttons */
+  --button-primary: #7895b2;
+  --button-primary-hover: #6684a2;
+  --button-primary-text: #ffffff;
+
+  /* Inputs */
+  --input-bg: #ffffff;
+  --input-text: #293544;
+  --input-border: #dce3ea;
+  --input-placeholder: #96a1ad;
+
+  /* Status */
+  --success: #78a987;
+  --error: #d98282;
+  --warning: #d9ad70;
+  --info: #789fc4;
+
+  /* Chat */
+  --chat-sent: #e3edf5;
+  --chat-received: #ffffff;
+  --chat-sent-text: #293544;
+  --chat-received-text: #293544;
+
+  /* Presence */
+  --online: #0ec946;
+  --offline: #2384f3;
+
+  /* Effects */
+  --shadow: 0 4px 16px rgba(41, 53, 68, 0.08);
+  --overlay: rgba(24, 34, 46, 0.45);
+}
+
+/* ================================
+   DARK THEME
+================================ */
+
+.dark {
+  color-scheme: dark;
+
+  /* Primary */
+  --primary: #91abc5;
+  --primary-hover: #a5bad0;
+  --primary-soft: #344354;
+
+  /* Secondary */
+  --secondary: #8298ad;
+  --secondary-soft: #303d4c;
+
+  /* Accent */
+  --accent: #91b49a;
+  --accent-soft: #30483a;
+
+  /* Background */
+  --bg-primary: #171d26;
+  --bg-secondary: #1d2631;
+
+  /* Surface */
+  --surface: #222b36;
+  --surface-hover: #2c3744;
+
+  /* Text */
+  --text-primary: #e8edf3;
+  --text-secondary: #b0bdca;
+  --text-muted: #81909f;
+
+  /* Borders */
+  --border: #354150;
+  --border-focus: #91abc5;
+
+  /* Buttons */
+  --button-primary: #91abc5;
+  --button-primary-hover: #a5bad0;
+  --button-primary-text: #171d26;
+
+  /* Inputs */
+  --input-bg: #222b36;
+  --input-text: #e8edf3;
+  --input-border: #354150;
+  --input-placeholder: #81909f;
+
+  /* Status */
+  --success: #91b99b;
+  --error: #d98d8d;
+  --warning: #d9b47f;
+  --info: #91b4d6;
+
+  /* Chat */
+  --chat-sent: #344354;
+  --chat-received: #2c3744;
+  --chat-sent-text: #e8edf3;
+  --chat-received-text: #e8edf3;
+
+  /* Presence */
+
+  --online: #0ec946;
+  --offline: #2384f3;
+
+  /* Effects */
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  --overlay: rgba(0, 0, 0, 0.65);
+}
+
+/* ================================
+   GLOBAL STYLES
+================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: Arial, Helvetica, sans-serif;
+}
