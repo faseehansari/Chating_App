@@ -8,6 +8,9 @@ const API = axios.create({
   },
 });
 
+// Check Backend URL
+console.log("Backend URL:", API.defaults.baseURL);
+
 // Automatically attach JWT token to requests
 API.interceptors.request.use(
   (config) => {
