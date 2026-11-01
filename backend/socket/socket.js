@@ -10,16 +10,26 @@ import Message from "../models/Message.js";
 let io;
 const onlineUsers = new Map();
 
+// Allow local development and deployed frontend URLs.
+const allowedOrigins = [
+  "http://localhost:5173",
+  ...(process.env.CLIENT_URL || "")
+    .split(",")
+    .map((url) => url.trim().replace(/\/+$/, ""))
+    .filter(Boolean),
+];
+
 export const initializeSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL,
+      origin: allowedOrigins,
       methods: ["GET", "POST"],
       credentials: true,
     },
   });
 
-  // Socket Authentication
+  // ================= SOCKET AUTHENTICATION =================
+
   io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth?.token;
@@ -45,7 +55,6 @@ export const initializeSocket = (server) => {
   io.on("connection", async (socket) => {
     const userId = socket.userId;
 
-    // Check whether this is the user's first active socket.
     const isFirstConnection = !onlineUsers.has(userId);
 
     if (!onlineUsers.has(userId)) {
@@ -62,7 +71,6 @@ export const initializeSocket = (server) => {
 
       console.log(`User connected: ${userId}`);
 
-      // Broadcast only on the first connection.
       if (isFirstConnection) {
         io.emit("user_online", {
           userId,
@@ -394,7 +402,6 @@ export const initializeSocket = (server) => {
       if (userSockets) {
         userSockets.delete(socket.id);
 
-        // Only mark offline when the last socket disconnects.
         if (userSockets.size === 0) {
           onlineUsers.delete(userId);
 
@@ -408,7 +415,6 @@ export const initializeSocket = (server) => {
 
             console.log(`User disconnected: ${userId}`);
 
-            // Broadcast offline status to connected clients.
             io.emit("user_offline", {
               userId,
               isOnline: false,
